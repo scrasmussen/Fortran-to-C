@@ -1,0 +1,80 @@
+//------------------------------------------------------------------
+// Open Fortran Project
+// December 2014
+// Create by Craig Rasmussen
+// fortran-to-c.str
+//------------------------------------------------------------------
+
+module fast-to-c
+
+imports
+   libstratego-lib
+   FAST
+
+signature
+  constructors
+
+    TEST: A * B  -> TEST
+    Mult: A * B  -> Mult
+    Plus: A * B  -> Plus
+    PartRef: A * B * C -> PartRef
+
+    Mul:  A * B  -> Mul
+    Add:  A * B  -> Add
+    ArrayIndex: A * B -> ArrayIndex    
+    IntConst: A -> IntConst
+    Id: A -> Id
+    Negative: A -> Negative
+    Positive: A -> Positive
+    FloatConst: A -> FloatConst
+
+strategies //=================START OF STRATEGIES==========================
+
+io-fast-to-c = io-wrap(
+              ArgOption(
+                 "-n"
+                 , where(<extend-config> ("-n", [<id>]))
+                 , !"-n               Binding name to be selected")
+              , fast-to-c-usage
+              , fast-to-c-about
+              , fast-to-c-start)
+
+fast-to-c-usage =
+    default-system-usage(
+      !["Usage: fast-to-c -n binding_name"]
+    , !["\n   This program generates a ROSE AST from a Fortran AST (FAST).\n"]
+    )
+
+fast-to-c-about =
+    <echo> "Written by Soren Rasmussen <soren.rasmussen@aggiemail.usu.edu>"
+
+fast-to-c-start =
+     debug(!"START: ")
+  ;  topdown(try(fast-to-c))
+  ;  debug(!"FINISHED: ")
+
+//fast-to-c =
+//     fail
+
+
+
+rules //=================================RULES=====================================
+
+  // The root of the tree. Creates the include statement, function declaration and main mex definition
+  fast-to-c: Mult(t1, t2 ) -> Mul(t1, t2)
+
+  fast-to-c: Plus(t1, t2 ) -> Add(t1, t2)
+  
+  fast-to-c: PartRef(name, [place], something) -> ArrayIndex(Id(name), place)
+  fast-to-c: PartRef(name, [place], something) -> ArrayIndex(Id(name), place)
+  fast-to-c: PartRef(name, [place], something) -> ArrayIndex(Id(name), place)
+
+
+  fast-to-c: Minus(expr) -> Negative(expr)
+  fast-to-c: Plus(expr)  -> Positive(expr)
+  //fast-to-c: Minus(expr) -> Negative(IntConst(expr))
+  //fast-to-c: Plus(expr)  -> Positive(IntConst(expr))
+
+  fast-to-c: RealLiteralConstant(num, something) -> FloatConst(num)
+
+
